@@ -1,0 +1,31 @@
+# 清空所有规则和链
+sudo iptables -F
+sudo iptables -X
+
+# 默认策略设置为拒绝所有流量
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+sudo iptables -P OUTPUT DROP
+
+# 允许本地回环接口上的流量
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A OUTPUT -o lo -j ACCEPT
+
+# 允许已经建立的和相关的连接通过
+sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# 允许从内部网络（192.168.1.0/24）访问外部网络
+sudo iptables -A FORWARD -i eth0 -o eth1 -s 192.168.1.0/24 -j ACCEPT
+sudo iptables -A FORWARD -i eth1 -o eth0 -d 192.168.1.0/24 -j ACCEPT
+
+# 允许特定的端口（例如SSH，端口22）通过
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A OUTPUT -p tcp --sport 22 -j ACCEPT
+
+# 允许DNS流量通过
+sudo iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+
+# 允许HTTP和HTTPS流量通过
+sudo iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
